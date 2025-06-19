@@ -57,3 +57,6 @@ if __name__ == '__main__':
 
 
 
+#git add .
+#git commit -m "v0.1"
+#git push origin main
