@@ -119,11 +119,3 @@ socket.on("update_pixel", ({ x, y, color }) => {
   canvasData[y][x] = color;
   draw();
 });
-
-socket.on("batch_update_pixels", (updates) => {
-  for (const {x, y, color} of updates) {
-    canvasData[y][x] = color;
-  }
-  draw();
-});
-
