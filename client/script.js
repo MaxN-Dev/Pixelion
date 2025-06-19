@@ -11,10 +11,11 @@ let targetScale = scale;
 let windowWidth = window.innerWidth;
 let windowHeight = window.innerHeight;
 
-let offsetX = 0;
-let offsetY = 0;
-let targetOffsetX = (windowWidth - canvasSize * scale) / 2;
-let targetOffsetY = (windowHeight - canvasSize * scale) / 2;
+let offsetX = (window.innerWidth - canvasSize * scale) / 2;
+let offsetY = (window.innerHeight - canvasSize * scale) / 2;
+
+let targetOffsetX = offsetX;
+let targetOffsetY = offsetY;
 
 let isPanning = false;
 let startPan = {};
