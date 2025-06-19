@@ -119,3 +119,4 @@ socket.on("update_pixel", ({ x, y, color }) => {
   canvasData[y][x] = color;
   draw();
 });
+
