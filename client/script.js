@@ -52,23 +52,6 @@ canvas.addEventListener("click", (e) => {
   }
 });
 
-canvas.addEventListener("touchstart", (e) => {
-  e.preventDefault();
-  const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  const x = Math.floor((touch.clientX - rect.left - offsetX) / scale);
-  const y = Math.floor((touch.clientY - rect.top - offsetY) / scale);
-  if (x >= 0 && y >= 0 && x < canvasSize && y < canvasSize) {
-    const hex = colorPicker.value;
-    const color = {
-      r: parseInt(hex.substr(1, 2), 16),
-      g: parseInt(hex.substr(3, 2), 16),
-      b: parseInt(hex.substr(5, 2), 16)
-    };
-    socket.emit("place_pixel", { x, y, color });
-  }
-});
-
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
   const rect = canvas.getBoundingClientRect();
@@ -76,7 +59,7 @@ canvas.addEventListener("wheel", (e) => {
   const mouseY = e.clientY - rect.top;
   const canvasX = (mouseX - offsetX) / scale;
   const canvasY = (mouseY - offsetY) / scale;
-  const zoomFactor = 1.01;
+  const zoomFactor = 1.001;
   const direction = -Math.sign(e.deltaY);
   const zoomAmount = direction > 0 ? zoomFactor : 1 / zoomFactor;
   targetScale = Math.min(Math.max(1, targetScale * zoomAmount), 50);
@@ -86,7 +69,7 @@ canvas.addEventListener("wheel", (e) => {
 });
 
 function smoothZoom(canvasX, canvasY, mouseX, mouseY) {
-  const zoomSpeed = 0.2;
+  const zoomSpeed = 1;
   const diff = targetScale - scale;
   if (Math.abs(diff) < 0.001) {
     scale = targetScale;
