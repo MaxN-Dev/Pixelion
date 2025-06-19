@@ -1,12 +1,12 @@
-
+import os
 from flask import Flask, send_from_directory
 from flask_socketio import SocketIO, emit
 import json
-import os
 import threading
 import time
 
-app = Flask(__name__, static_folder='../client')
+static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../client')
+app = Flask(__name__, static_folder=static_folder)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 CANVAS_WIDTH = 100
