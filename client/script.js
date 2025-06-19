@@ -5,51 +5,34 @@ const colorPicker = document.getElementById("colorPicker");
 
 const canvasSize = 100;
 let scale = 7;
-let targetScale = scale;
-const zoomSpeed = 0.2;
 
 let isPanning = false;
 let startPan = {};
 
+let pixelCanvasWidth = canvasSize * scale;
+let pixelCanvasHeight = canvasSize * scale;
+
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let offsetX = (window.innerWidth - canvasSize * scale) / 2;
-let offsetY = (window.innerHeight - canvasSize * scale) / 2;
+let windowWidth = window.innerWidth;
+let windowHeight = window.innerHeight;
+
+let offsetX = (windowWidth - pixelCanvasWidth) / 2;
+let offsetY = (windowHeight - pixelCanvasHeight) / 2;
 
 let canvasData = [];
 
-let lastMousePos = { x: canvas.width / 2, y: canvas.height / 2 };
-
-canvas.addEventListener("wheel", (e) => {
-  e.preventDefault();
-
-  lastMousePos = { x: e.clientX, y: e.clientY };
-
-  const zoomFactor = Math.exp(-e.deltaY * 0.001);
-
-  targetScale = Math.min(Math.max(1, targetScale * zoomFactor), 50);
-});
-
-canvas.addEventListener("mousemove", (e) => {
-  if (isPanning) {
-    offsetX += e.clientX - startPan.x;
-    offsetY += e.clientY - startPan.y;
-    startPan = { x: e.clientX, y: e.clientY };
-    draw();
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let y = 0; y < canvasSize; y++) {
+    for (let x = 0; x < canvasSize; x++) {
+      const color = canvasData[y][x];
+      ctx.fillStyle = `rgb(${color.r},${color.g},${color.b})`;
+      ctx.fillRect(x * scale + offsetX, y * scale + offsetY, scale, scale);
+    }
   }
-});
-
-canvas.addEventListener("mousedown", (e) => {
-  if (e.button === 1) {
-    e.preventDefault();
-    isPanning = true;
-    startPan = { x: e.clientX, y: e.clientY };
-  }
-});
-
-canvas.addEventListener("mouseup", () => (isPanning = false));
-canvas.addEventListener("mouseleave", () => (isPanning = false));
+}
 
 canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
@@ -60,46 +43,62 @@ canvas.addEventListener("click", (e) => {
     const color = {
       r: parseInt(hex.substr(1, 2), 16),
       g: parseInt(hex.substr(3, 2), 16),
-      b: parseInt(hex.substr(5, 2), 16),
+      b: parseInt(hex.substr(5, 2), 16)
     };
     socket.emit("place_pixel", { x, y, color });
   }
 });
 
-function lerp(start, end, t) {
-  return start + (end - start) * t;
-}
+canvas.addEventListener("wheel", (e) => {
+  e.preventDefault();
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
 
-  for (let y = 0; y < canvasSize; y++) {
-    for (let x = 0; x < canvasSize; x++) {
-      const color = canvasData[y][x];
-      ctx.fillStyle = `rgb(${color.r},${color.g},${color.b})`;
-      ctx.fillRect(x * scale + offsetX, y * scale + offsetY, scale, scale);
-    }
+  const oldScale = scale;
+  const zoomFactor = 1.1;
+
+  const canvasX = (mouseX - offsetX) / oldScale;
+  const canvasY = (mouseY - offsetY) / oldScale;
+
+  if (e.deltaY < 0) {
+    scale *= zoomFactor;
+  } else {
+    scale /= zoomFactor;
   }
-}
 
-function animate() {
-  if (Math.abs(scale - targetScale) > 0.001) {
-    const prevScale = scale;
-    scale = lerp(scale, targetScale, zoomSpeed);
+  scale = Math.min(Math.max(1, scale), 50);
 
-    const mouseX = lastMousePos.x;
-    const mouseY = lastMousePos.y;
+  const newCanvasX = canvasX * scale + offsetX;
+  const newCanvasY = canvasY * scale + offsetY;
 
-    const worldX = (mouseX - offsetX) / prevScale;
-    const worldY = (mouseY - offsetY) / prevScale;
+  offsetX += mouseX - newCanvasX;
+  offsetY += mouseY - newCanvasY;
 
-    offsetX = mouseX - worldX * scale;
-    offsetY = mouseY - worldY * scale;
+  draw();
+});
 
+canvas.addEventListener("mousedown", (e) => {
+  if (e.button === 1) {
+    e.preventDefault();
+    isPanning = true;
+    startPan = { x: e.clientX, y: e.clientY };
+  }
+});
+
+
+canvas.addEventListener("mousemove", (e) => {
+  if (isPanning) {
+    offsetX += e.clientX - startPan.x;
+    offsetY += e.clientY - startPan.y;
+    startPan = { x: e.clientX, y: e.clientY };
     draw();
   }
-  requestAnimationFrame(animate);
-}
+});
+
+canvas.addEventListener("mouseup", () => isPanning = false);
+canvas.addEventListener("mouseleave", () => isPanning = false);
 
 socket.on("load_canvas", (data) => {
   canvasData = data;
@@ -110,5 +109,3 @@ socket.on("update_pixel", ({ x, y, color }) => {
   canvasData[y][x] = color;
   draw();
 });
-
-animate();
