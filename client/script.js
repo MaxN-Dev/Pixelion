@@ -52,29 +52,23 @@ canvas.addEventListener("click", (e) => {
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
 
-  const zoomIntensity = 0.1; // smaller = smoother
+  const zoomIntensity = 0.1;
   const mouseX = e.clientX;
   const mouseY = e.clientY;
 
-  const wx = (mouseX - offsetX) / scale;
-  const wy = (mouseY - offsetY) / scale;
+  const worldX = (mouseX - offsetX) / scale;
+  const worldY = (mouseY - offsetY) / scale;
 
-  // Zoom in/out
-  const direction = e.deltaY > 0 ? -1 : 1;
-  const factor = 1 + direction * zoomIntensity;
-  scale *= factor;
+  const zoom = e.deltaY < 0 ? 1 + zoomIntensity : 1 - zoomIntensity;
+  scale *= zoom;
 
-  // Clamp zoom
-  scale = Math.min(Math.max(scale, 1), 50);
+  scale = Math.max(1, Math.min(scale, 50));
 
-  // Adjust offset to zoom towards mouse
-  offsetX = mouseX - wx * scale;
-  offsetY = mouseY - wy * scale;
+  offsetX = mouseX - worldX * scale;
+  offsetY = mouseY - worldY * scale;
 
   draw();
 });
-
-
 
 canvas.addEventListener("mousedown", (e) => {
   if (e.button === 1) {
