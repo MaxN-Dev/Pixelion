@@ -1,5 +1,7 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+
 const socket = io();
 const colorPicker = document.getElementById("colorPicker");
 
@@ -7,7 +9,10 @@ const canvasSize = 100;
 let scale = 7;
 
 let isPanning = false;
+let isDrawing = false;
 let startPan = {};
+
+let canvasData = [];
 
 let pixelCanvasWidth = canvasSize * scale;
 let pixelCanvasHeight = canvasSize * scale;
@@ -21,8 +26,6 @@ let windowHeight = window.innerHeight;
 let offsetX = (windowWidth - pixelCanvasWidth) / 2;
 let offsetY = (windowHeight - pixelCanvasHeight) / 2;
 
-let canvasData = [];
-
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let y = 0; y < canvasSize; y++) {
@@ -34,10 +37,11 @@ function draw() {
   }
 }
 
-canvas.addEventListener("click", (e) => {
+function drawPixelFromEvent(e) {
   const rect = canvas.getBoundingClientRect();
   const x = Math.floor((e.clientX - rect.left - offsetX) / scale);
   const y = Math.floor((e.clientY - rect.top - offsetY) / scale);
+
   if (x >= 0 && y >= 0 && x < canvasSize && y < canvasSize) {
     const hex = colorPicker.value;
     const color = {
@@ -47,6 +51,40 @@ canvas.addEventListener("click", (e) => {
     };
     socket.emit("place_pixel", { x, y, color });
   }
+}
+
+canvas.addEventListener("mousedown", (e) => {
+  if (e.button === 1) {
+    // Middle click to pan
+    e.preventDefault();
+    isPanning = true;
+    startPan = { x: e.clientX, y: e.clientY };
+  } else if (e.button === 0) {
+    // Left click to draw
+    isDrawing = true;
+    drawPixelFromEvent(e);
+  }
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  if (isPanning) {
+    offsetX += e.clientX - startPan.x;
+    offsetY += e.clientY - startPan.y;
+    startPan = { x: e.clientX, y: e.clientY };
+    draw();
+  } else if (isDrawing) {
+    drawPixelFromEvent(e);
+  }
+});
+
+canvas.addEventListener("mouseup", () => {
+  isPanning = false;
+  isDrawing = false;
+});
+
+canvas.addEventListener("mouseleave", () => {
+  isPanning = false;
+  isDrawing = false;
 });
 
 canvas.addEventListener("wheel", (e) => {
@@ -60,7 +98,6 @@ canvas.addEventListener("wheel", (e) => {
   const canvasX = (mouseX - offsetX) / prevScale;
   const canvasY = (mouseY - offsetY) / prevScale;
 
-
   const delta = -Math.sign(e.deltaY);
   scale = Math.min(Math.max(1, scale + delta), 50);
 
@@ -72,28 +109,6 @@ canvas.addEventListener("wheel", (e) => {
 
   draw();
 });
-
-
-canvas.addEventListener("mousedown", (e) => {
-  if (e.button === 1) {
-    e.preventDefault();
-    isPanning = true;
-    startPan = { x: e.clientX, y: e.clientY };
-  }
-});
-
-
-canvas.addEventListener("mousemove", (e) => {
-  if (isPanning) {
-    offsetX += e.clientX - startPan.x;
-    offsetY += e.clientY - startPan.y;
-    startPan = { x: e.clientX, y: e.clientY };
-    draw();
-  }
-});
-
-canvas.addEventListener("mouseup", () => isPanning = false);
-canvas.addEventListener("mouseleave", () => isPanning = false);
 
 socket.on("load_canvas", (data) => {
   canvasData = data;
