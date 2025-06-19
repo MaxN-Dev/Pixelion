@@ -40,32 +40,39 @@ canvas.addEventListener("mousedown", (e) => {
 });
 
 canvas.addEventListener("mousemove", (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-
-  if (isPanning && e.buttons === 4) {
+  if (isPanning) {
     offsetX += e.clientX - startPan.x;
     offsetY += e.clientY - startPan.y;
     startPan = { x: e.clientX, y: e.clientY };
+    mouseX = e.clientX;
+    mouseY = e.clientY;
   }
 });
+
 
 canvas.addEventListener("mouseup", () => isPanning = false);
 canvas.addEventListener("mouseleave", () => isPanning = false);
 
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
-  const rect = canvas.getBoundingClientRect();
-  mouseX = e.clientX - rect.left;
-  mouseY = e.clientY - rect.top;
-  canvasX = (mouseX - offsetX) / scale;
-  canvasY = (mouseY - offsetY) / scale;
 
-  const zoomFactor = 1.2;
+  const rect = canvas.getBoundingClientRect();
+  const zoomMouseX = e.clientX - rect.left;
+  const zoomMouseY = e.clientY - rect.top;
+  const zoomCanvasX = (zoomMouseX - offsetX) / scale;
+  const zoomCanvasY = (zoomMouseY - offsetY) / scale;
+
+  const zoomFactor = 1.1;
   const direction = -Math.sign(e.deltaY);
   const zoomAmount = direction > 0 ? zoomFactor : 1 / zoomFactor;
   targetScale = Math.min(Math.max(1, targetScale * zoomAmount), 50);
+
+  canvasX = zoomCanvasX;
+  canvasY = zoomCanvasY;
+  mouseX = zoomMouseX;
+  mouseY = zoomMouseY;
 });
+
 
 canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
