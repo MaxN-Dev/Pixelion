@@ -50,10 +50,7 @@ canvas.addEventListener("mousemove", (e) => {
   mouseY = e.clientY;
 });
 
-canvas.addEventListener("pointerup", (e) => {
-  if (e.button === 1) isPanning = false;
-});
-canvas.addEventListener("pointercancel", () => isPanning = false);
+canvas.addEventListener("mouseup", () => isPanning = false);
 canvas.addEventListener("mouseleave", () => isPanning = false);
 
 canvas.addEventListener("wheel", (e) => {
