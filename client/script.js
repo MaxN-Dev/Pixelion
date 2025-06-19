@@ -26,7 +26,6 @@ for (let y = 0; y < canvasSize; y++) {
   }
 }
 
-
 let mouseX = 0;
 let mouseY = 0;
 let canvasX = 0;
@@ -41,13 +40,14 @@ canvas.addEventListener("mousedown", (e) => {
 });
 
 canvas.addEventListener("mousemove", (e) => {
-  if (isPanning) {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+
+  if (isPanning && e.buttons === 4) {
     offsetX += e.clientX - startPan.x;
     offsetY += e.clientY - startPan.y;
     startPan = { x: e.clientX, y: e.clientY };
   }
-  mouseX = e.clientX;
-  mouseY = e.clientY;
 });
 
 canvas.addEventListener("mouseup", () => isPanning = false);
