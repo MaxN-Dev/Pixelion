@@ -19,6 +19,14 @@ let offsetY = (canvas.height - canvasSize * scale) / 2;
 
 let canvasData = [];
 
+for (let y = 0; y < canvasSize; y++) {
+  canvasData[y] = [];
+  for (let x = 0; x < canvasSize; x++) {
+    canvasData[y][x] = { r: 255, g: 255, b: 255 };
+  }
+}
+
+
 let mouseX = 0;
 let mouseY = 0;
 let canvasX = 0;
