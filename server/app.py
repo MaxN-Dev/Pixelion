@@ -6,8 +6,7 @@ import os
 import threading
 import time
 
-app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), '..', 'client'))
-
+app = Flask(__name__, static_folder='../client')
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 CANVAS_WIDTH = 100
@@ -54,5 +53,6 @@ if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 10000))
     socketio.run(app, host='0.0.0.0', port=port)
+
 
 
