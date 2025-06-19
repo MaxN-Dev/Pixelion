@@ -1,61 +1,43 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-ctx.imageSmoothingEnabled = false;
-
 const socket = io();
 const colorPicker = document.getElementById("colorPicker");
 
-const canvasSize = 100; // 100x100 pixel grid
-let canvasData = [];
-
+const canvasSize = 100;
 let scale = 7;
-let targetScale = scale;
-
-let offsetX = 0;
-let offsetY = 0;
 
 let isPanning = false;
-let startPan = { x: 0, y: 0 };
+let startPan = {};
 
-// Resize to full screen
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-window.addEventListener("resize", () => {
-  resizeCanvas();
-  centerCanvas();
-  draw();
-});
+let pixelCanvasWidth = canvasSize * scale;
+let pixelCanvasHeight = canvasSize * scale;
 
-// Center canvas on first load
-function centerCanvas() {
-  const pixelWidth = canvasSize * scale;
-  const pixelHeight = canvasSize * scale;
-  offsetX = (canvas.width - pixelWidth) / 2;
-  offsetY = (canvas.height - pixelHeight) / 2;
-}
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let windowWidth = window.innerWidth;
+let windowHeight = window.innerHeight;
+
+let offsetX = (windowWidth - pixelCanvasWidth) / 2;
+let offsetY = (windowHeight - pixelCanvasHeight) / 2;
+
+let canvasData = [];
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   for (let y = 0; y < canvasSize; y++) {
     for (let x = 0; x < canvasSize; x++) {
       const color = canvasData[y][x];
       ctx.fillStyle = `rgb(${color.r},${color.g},${color.b})`;
-      ctx.fillRect(
-        x * scale + offsetX,
-        y * scale + offsetY,
-        scale,
-        scale
-      );
+      ctx.fillRect(x * scale + offsetX, y * scale + offsetY, scale, scale);
     }
   }
 }
 
-// Send pixel placement
 canvas.addEventListener("click", (e) => {
-  const { x, y } = getCanvasCoordinates(e.clientX, e.clientY);
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((e.clientX - rect.left - offsetX) / scale);
+  const y = Math.floor((e.clientY - rect.top - offsetY) / scale);
   if (x >= 0 && y >= 0 && x < canvasSize && y < canvasSize) {
     const hex = colorPicker.value;
     const color = {
@@ -67,30 +49,31 @@ canvas.addEventListener("click", (e) => {
   }
 });
 
-// Smooth zoom into mouse position
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
-  const mouseX = e.clientX;
-  const mouseY = e.clientY;
-  const { x: worldX, y: worldY } = getCanvasCoordinates(mouseX, mouseY);
 
-  const zoomFactor = 1.2;
-  const direction = -Math.sign(e.deltaY);
-  const zoomAmount = direction > 0 ? zoomFactor : 1 / zoomFactor;
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
 
-  const newScale = Math.max(1, Math.min(targetScale * zoomAmount, 50));
-  const scaleRatio = newScale / scale;
+  const prevScale = scale;
+  const canvasX = (mouseX - offsetX) / prevScale;
+  const canvasY = (mouseY - offsetY) / prevScale;
 
-  // Adjust offset so zoom feels centered on mouse
-  offsetX = mouseX - (mouseX - offsetX) * scaleRatio;
-  offsetY = mouseY - (mouseY - offsetY) * scaleRatio;
 
-  scale = newScale;
-  targetScale = newScale;
+  const delta = -Math.sign(e.deltaY);
+  scale = Math.min(Math.max(1, scale + delta), 50);
+
+  const newCanvasX = canvasX * scale + offsetX;
+  const newCanvasY = canvasY * scale + offsetY;
+
+  offsetX += mouseX - newCanvasX;
+  offsetY += mouseY - newCanvasY;
+
   draw();
-}, { passive: false });
+});
 
-// Drag (middle mouse)
+
 canvas.addEventListener("mousedown", (e) => {
   if (e.button === 1) {
     e.preventDefault();
@@ -99,12 +82,11 @@ canvas.addEventListener("mousedown", (e) => {
   }
 });
 
+
 canvas.addEventListener("mousemove", (e) => {
   if (isPanning) {
-    const dx = e.clientX - startPan.x;
-    const dy = e.clientY - startPan.y;
-    offsetX += dx;
-    offsetY += dy;
+    offsetX += e.clientX - startPan.x;
+    offsetY += e.clientY - startPan.y;
     startPan = { x: e.clientX, y: e.clientY };
     draw();
   }
@@ -113,18 +95,8 @@ canvas.addEventListener("mousemove", (e) => {
 canvas.addEventListener("mouseup", () => isPanning = false);
 canvas.addEventListener("mouseleave", () => isPanning = false);
 
-// Convert screen (mouse) coordinates to canvas grid coords
-function getCanvasCoordinates(screenX, screenY) {
-  const x = Math.floor((screenX - offsetX) / scale);
-  const y = Math.floor((screenY - offsetY) / scale);
-  return { x, y };
-}
-
-// Socket events
 socket.on("load_canvas", (data) => {
   canvasData = data;
-  resizeCanvas();
-  centerCanvas();
   draw();
 });
 
