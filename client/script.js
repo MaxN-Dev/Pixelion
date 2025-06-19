@@ -1,4 +1,3 @@
-
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const socket = io();
@@ -8,20 +7,13 @@ const canvasSize = 100;
 let scale = 7;
 let targetScale = scale;
 
-let windowWidth = window.innerWidth;
-let windowHeight = window.innerHeight;
-
 let offsetX = (window.innerWidth - canvasSize * scale) / 2;
 let offsetY = (window.innerHeight - canvasSize * scale) / 2;
-
 let targetOffsetX = offsetX;
 let targetOffsetY = offsetY;
 
 let isPanning = false;
 let startPan = {};
-
-let pixelCanvasWidth = canvasSize * scale;
-let pixelCanvasHeight = canvasSize * scale;
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -29,6 +21,9 @@ canvas.height = window.innerHeight;
 let canvasData = [];
 
 function draw() {
+  const pixelCanvasWidth = canvasSize * scale;
+  const pixelCanvasHeight = canvasSize * scale;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let y = 0; y < canvasSize; y++) {
     for (let x = 0; x < canvasSize; x++) {
@@ -56,7 +51,6 @@ canvas.addEventListener("click", (e) => {
 
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
-
   const rect = canvas.getBoundingClientRect();
   const mouseX = e.clientX - rect.left;
   const mouseY = e.clientY - rect.top;
@@ -73,8 +67,6 @@ canvas.addEventListener("wheel", (e) => {
   targetOffsetX += mouseX - newCanvasX;
   targetOffsetY += mouseY - newCanvasY;
 });
-
-
 
 canvas.addEventListener("mousedown", (e) => {
   if (e.button === 1) {
@@ -99,12 +91,10 @@ canvas.addEventListener("mouseleave", () => isPanning = false);
 
 socket.on("load_canvas", (data) => {
   canvasData = data;
-  draw();
 });
 
 socket.on("update_pixel", ({ x, y, color }) => {
   canvasData[y][x] = color;
-  draw();
 });
 
 function lerp(start, end, t) {
@@ -112,13 +102,11 @@ function lerp(start, end, t) {
 }
 
 function updateCamera() {
-  scale = lerp(scale, targetScale, 0.1);
-  offsetX = lerp(offsetX, targetOffsetX, 0.1);
-  offsetY = lerp(offsetY, targetOffsetY, 0.1);
-
+  scale = lerp(scale, targetScale, 0.15);
+  offsetX = lerp(offsetX, targetOffsetX, 0.15);
+  offsetY = lerp(offsetY, targetOffsetY, 0.15);
   draw();
   requestAnimationFrame(updateCamera);
 }
 
 requestAnimationFrame(updateCamera);
-
