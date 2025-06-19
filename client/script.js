@@ -5,6 +5,8 @@ const colorPicker = document.getElementById("colorPicker");
 
 const canvasSize = 100;
 let scale = 7;
+let targetScale = scale;
+let zoomAnimationFrame = null;
 
 let isPanning = false;
 let startPan = {};
@@ -25,6 +27,7 @@ let canvasData = [];
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.imageSmoothingEnabled = false;
   for (let y = 0; y < canvasSize; y++) {
     for (let x = 0; x < canvasSize; x++) {
       const color = canvasData[y][x];
@@ -51,24 +54,36 @@ canvas.addEventListener("click", (e) => {
 
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
-
-  const zoomIntensity = 0.1;
-  const mouseX = e.clientX;
-  const mouseY = e.clientY;
-
-  const worldX = (mouseX - offsetX) / scale;
-  const worldY = (mouseY - offsetY) / scale;
-
-  const zoom = e.deltaY < 0 ? 1 + zoomIntensity : 1 - zoomIntensity;
-  scale *= zoom;
-
-  scale = Math.max(1, Math.min(scale, 50));
-
-  offsetX = mouseX - worldX * scale;
-  offsetY = mouseY - worldY * scale;
-
-  draw();
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  const canvasX = (mouseX - offsetX) / scale;
+  const canvasY = (mouseY - offsetY) / scale;
+  const zoomFactor = 1.1;
+  const direction = -Math.sign(e.deltaY);
+  const zoomAmount = direction > 0 ? zoomFactor : 1 / zoomFactor;
+  targetScale = Math.min(Math.max(1, targetScale * zoomAmount), 50);
+  if (!zoomAnimationFrame) {
+    smoothZoom(canvasX, canvasY, mouseX, mouseY);
+  }
 });
+
+function smoothZoom(canvasX, canvasY, mouseX, mouseY) {
+  const zoomSpeed = 0.2;
+  const diff = targetScale - scale;
+  if (Math.abs(diff) < 0.001) {
+    scale = targetScale;
+    zoomAnimationFrame = null;
+    return;
+  }
+  scale += diff * zoomSpeed;
+  const newCanvasX = canvasX * scale + offsetX;
+  const newCanvasY = canvasY * scale + offsetY;
+  offsetX += mouseX - newCanvasX;
+  offsetY += mouseY - newCanvasY;
+  draw();
+  zoomAnimationFrame = requestAnimationFrame(() => smoothZoom(canvasX, canvasY, mouseX, mouseY));
+}
 
 canvas.addEventListener("mousedown", (e) => {
   if (e.button === 1) {
@@ -77,7 +92,6 @@ canvas.addEventListener("mousedown", (e) => {
     startPan = { x: e.clientX, y: e.clientY };
   }
 });
-
 
 canvas.addEventListener("mousemove", (e) => {
   if (isPanning) {
