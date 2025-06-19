@@ -31,6 +31,13 @@ let mouseY = 0;
 let canvasX = 0;
 let canvasY = 0;
 
+// add these:
+let zoomMouseX = 0;
+let zoomMouseY = 0;
+let zoomCanvasX = 0;
+let zoomCanvasY = 0;
+
+
 canvas.addEventListener("mousedown", (e) => {
   if (e.button === 1) {
     e.preventDefault();
@@ -57,21 +64,17 @@ canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
 
   const rect = canvas.getBoundingClientRect();
-  const zoomMouseX = e.clientX - rect.left;
-  const zoomMouseY = e.clientY - rect.top;
-  const zoomCanvasX = (zoomMouseX - offsetX) / scale;
-  const zoomCanvasY = (zoomMouseY - offsetY) / scale;
+  zoomMouseX = e.clientX - rect.left;
+  zoomMouseY = e.clientY - rect.top;
+  zoomCanvasX = (zoomMouseX - offsetX) / scale;
+  zoomCanvasY = (zoomMouseY - offsetY) / scale;
 
   const zoomFactor = 1.1;
   const direction = -Math.sign(e.deltaY);
   const zoomAmount = direction > 0 ? zoomFactor : 1 / zoomFactor;
   targetScale = Math.min(Math.max(1, targetScale * zoomAmount), 50);
-
-  canvasX = zoomCanvasX;
-  canvasY = zoomCanvasY;
-  mouseX = zoomMouseX;
-  mouseY = zoomMouseY;
 });
+
 
 
 canvas.addEventListener("click", (e) => {
@@ -102,15 +105,16 @@ function tick() {
   const diff = targetScale - scale;
   if (Math.abs(diff) > 0.001) {
     scale += diff * zoomSpeed;
-    const newCanvasX = canvasX * scale + offsetX;
-    const newCanvasY = canvasY * scale + offsetY;
-    offsetX += mouseX - newCanvasX;
-    offsetY += mouseY - newCanvasY;
+    const newCanvasX = zoomCanvasX * scale + offsetX;
+    const newCanvasY = zoomCanvasY * scale + offsetY;
+    offsetX += zoomMouseX - newCanvasX;
+    offsetY += zoomMouseY - newCanvasY;
   }
 
   draw();
   requestAnimationFrame(tick);
 }
+
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
