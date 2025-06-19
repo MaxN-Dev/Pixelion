@@ -71,18 +71,23 @@ canvas.addEventListener("wheel", (e) => {
 function smoothZoom(canvasX, canvasY, mouseX, mouseY) {
   const zoomSpeed = 0.02;
   const diff = targetScale - scale;
-  if (Math.abs(diff) < 0.001) {
-    scale = targetScale;
-    zoomAnimationFrame = null;
-    return;
-  }
+
   scale += diff * zoomSpeed;
+
   const newCanvasX = canvasX * scale + offsetX;
   const newCanvasY = canvasY * scale + offsetY;
+
   offsetX += mouseX - newCanvasX;
   offsetY += mouseY - newCanvasY;
+
   draw();
-  zoomAnimationFrame = requestAnimationFrame(() => smoothZoom(canvasX, canvasY, mouseX, mouseY));
+
+  if (Math.abs(diff) >= 0.001) {
+    zoomAnimationFrame = requestAnimationFrame(() => smoothZoom(canvasX, canvasY, mouseX, mouseY));
+  } else {
+    scale = targetScale;
+    zoomAnimationFrame = null;
+  }
 }
 
 canvas.addEventListener("mousedown", (e) => {
