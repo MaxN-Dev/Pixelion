@@ -34,6 +34,7 @@ function draw() {
   }
 }
 
+
 canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
   const x = Math.floor((e.clientX - rect.left - offsetX) / scale);
