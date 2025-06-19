@@ -59,7 +59,7 @@ canvas.addEventListener("wheel", (e) => {
   const mouseY = e.clientY - rect.top;
   const canvasX = (mouseX - offsetX) / scale;
   const canvasY = (mouseY - offsetY) / scale;
-  const zoomFactor = 1.1;
+  const zoomFactor = 1.01;
   const direction = -Math.sign(e.deltaY);
   const zoomAmount = direction > 0 ? zoomFactor : 1 / zoomFactor;
   targetScale = Math.min(Math.max(1, targetScale * zoomAmount), 50);
@@ -69,7 +69,7 @@ canvas.addEventListener("wheel", (e) => {
 });
 
 function smoothZoom(canvasX, canvasY, mouseX, mouseY) {
-  const zoomSpeed = 0.2;
+  const zoomSpeed = 0.1;
   const diff = targetScale - scale;
   if (Math.abs(diff) < 0.001) {
     scale = targetScale;
