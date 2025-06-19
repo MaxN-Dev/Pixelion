@@ -25,10 +25,10 @@ canvas {
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
-  width: 150px;
+  width: 50px;
   height: 50px;
   border: none;
-  border-radius: 15px;
+  border-radius: 50%;
   cursor: pointer;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -39,11 +39,11 @@ canvas {
 }
 
 #colorPicker::-webkit-color-swatch{
-  border-radius: 15px;
+  border-radius: 50%;
   border: none;
 }
 #colorPicker::-moz-color-swatch{
-  border-radius: 15px;
+  border-radius: 50%;
   border: none;
 }
 
