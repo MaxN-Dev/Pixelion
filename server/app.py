@@ -13,9 +13,6 @@ CANVAS_WIDTH = 100
 CANVAS_HEIGHT = 100
 CANVAS_PATH = 'canvas.json'
 
-cooldown = 1
-last_action = {}
-
 if os.path.exists(CANVAS_PATH):
     with open(CANVAS_PATH, 'r') as f:
         canvas = json.load(f)
@@ -34,15 +31,8 @@ def static_proxy(path):
 def handle_connect():
     emit('load_canvas', canvas)
 
-
 @socketio.on('place_pixel')
 def handle_place_pixel(data):
-    sid = request.sid
-    now = time.time()
-    if sid in last_action and now - last_action[sid] < cooldown:
-        return
-
-    last_action[sid] = now
     x, y, color = data['x'], data['y'], data['color']
     canvas[y][x] = color
     emit('update_pixel', {'x': x, 'y': y, 'color': color}, broadcast=True)
