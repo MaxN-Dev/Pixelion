@@ -29,41 +29,12 @@ def static_proxy(path):
 
 @socketio.on('connect')
 def handle_connect():
-    sid = request.sid
-    print(f"[+] {sid} connected")
     emit('load_canvas', canvas)
-
 
 @socketio.on('place_pixel')
 def handle_place_pixel(data):
-    sid = request.sid  # session ID
-
-    x = data.get('x')
-    y = data.get('y')
-    color = data.get('color')
-
-    # ✅ Validate coordinates
-    if not isinstance(x, int) or not isinstance(y, int):
-        return
-    if x < 0 or y < 0 or x >= CANVAS_WIDTH or y >= CANVAS_HEIGHT:
-        return
-
-    # ✅ Validate color format
-    if not isinstance(color, dict):
-        return
-    r, g, b = color.get('r'), color.get('g'), color.get('b')
-    if not all(isinstance(c, int) and 0 <= c <= 255 for c in [r, g, b]):
-        return
-
-    # ✅ Optional: Check cooldown
-    now = time.time()
-    last = last_draw_time.get(sid, 0)
-    if now - last < 1:  # 1 second cooldown
-        return
-    last_draw_time[sid] = now
-
-    # ✅ Update the canvas
-    canvas[y][x] = {"r": r, "g": g, "b": b}
+    x, y, color = data['x'], data['y'], data['color']
+    canvas[y][x] = color
     emit('update_pixel', {'x': x, 'y': y, 'color': color}, broadcast=True)
 
 def save_canvas():
