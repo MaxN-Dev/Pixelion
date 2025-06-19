@@ -31,13 +31,6 @@ let mouseY = 0;
 let canvasX = 0;
 let canvasY = 0;
 
-// add these:
-let zoomMouseX = 0;
-let zoomMouseY = 0;
-let zoomCanvasX = 0;
-let zoomCanvasY = 0;
-
-
 canvas.addEventListener("mousedown", (e) => {
   if (e.button === 1) {
     e.preventDefault();
@@ -51,31 +44,27 @@ canvas.addEventListener("mousemove", (e) => {
     offsetX += e.clientX - startPan.x;
     offsetY += e.clientY - startPan.y;
     startPan = { x: e.clientX, y: e.clientY };
-    mouseX = e.clientX;
-    mouseY = e.clientY;
   }
+  mouseX = e.clientX;
+  mouseY = e.clientY;
 });
-
 
 canvas.addEventListener("mouseup", () => isPanning = false);
 canvas.addEventListener("mouseleave", () => isPanning = false);
 
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
-
   const rect = canvas.getBoundingClientRect();
-  zoomMouseX = e.clientX - rect.left;
-  zoomMouseY = e.clientY - rect.top;
-  zoomCanvasX = (zoomMouseX - offsetX) / scale;
-  zoomCanvasY = (zoomMouseY - offsetY) / scale;
+  mouseX = e.clientX - rect.left;
+  mouseY = e.clientY - rect.top;
+  canvasX = (mouseX - offsetX) / scale;
+  canvasY = (mouseY - offsetY) / scale;
 
-  const zoomFactor = 1.1;
+  const zoomFactor = 1.2;
   const direction = -Math.sign(e.deltaY);
   const zoomAmount = direction > 0 ? zoomFactor : 1 / zoomFactor;
   targetScale = Math.min(Math.max(1, targetScale * zoomAmount), 50);
 });
-
-
 
 canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
@@ -105,16 +94,15 @@ function tick() {
   const diff = targetScale - scale;
   if (Math.abs(diff) > 0.001) {
     scale += diff * zoomSpeed;
-    const newCanvasX = zoomCanvasX * scale + offsetX;
-    const newCanvasY = zoomCanvasY * scale + offsetY;
-    offsetX += zoomMouseX - newCanvasX;
-    offsetY += zoomMouseY - newCanvasY;
+    const newCanvasX = canvasX * scale + offsetX;
+    const newCanvasY = canvasY * scale + offsetY;
+    offsetX += mouseX - newCanvasX;
+    offsetY += mouseY - newCanvasY;
   }
 
   draw();
   requestAnimationFrame(tick);
 }
-
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
