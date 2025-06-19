@@ -5,10 +5,6 @@ const colorPicker = document.getElementById("colorPicker");
 
 const canvasSize = 100;
 let scale = 7;
-let targetScale = scale;
-let zoomX = 0;
-let zoomY = 0;
-
 
 let isPanning = false;
 let startPan = {};
@@ -56,12 +52,26 @@ canvas.addEventListener("click", (e) => {
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
 
-  const rect = canvas.getBoundingClientRect();
-  zoomX = e.clientX - rect.left;
-  zoomY = e.clientY - rect.top;
+  const zoomIntensity = 0.1; // smaller = smoother
+  const mouseX = e.clientX;
+  const mouseY = e.clientY;
 
-  const delta = -Math.sign(e.deltaY);
-  targetScale = Math.min(Math.max(1, targetScale + delta), 50);
+  const wx = (mouseX - offsetX) / scale;
+  const wy = (mouseY - offsetY) / scale;
+
+  // Zoom in/out
+  const direction = e.deltaY > 0 ? -1 : 1;
+  const factor = 1 + direction * zoomIntensity;
+  scale *= factor;
+
+  // Clamp zoom
+  scale = Math.min(Math.max(scale, 1), 50);
+
+  // Adjust offset to zoom towards mouse
+  offsetX = mouseX - wx * scale;
+  offsetY = mouseY - wy * scale;
+
+  draw();
 });
 
 
@@ -96,29 +106,3 @@ socket.on("update_pixel", ({ x, y, color }) => {
   canvasData[y][x] = color;
   draw();
 });
-
-function lerp(a, b, t) {
-  return a + (b - a) * t;
-}
-
-function animate() {
-  // Smooth zooming
-  if (Math.abs(scale - targetScale) > 0.01) {
-    const prevScale = scale;
-    scale = lerp(scale, targetScale, 0.2);
-
-    const canvasX = (zoomX - offsetX) / prevScale;
-    const canvasY = (zoomY - offsetY) / prevScale;
-
-    const newCanvasX = canvasX * scale + offsetX;
-    const newCanvasY = canvasY * scale + offsetY;
-
-    offsetX += zoomX - newCanvasX;
-    offsetY += zoomY - newCanvasY;
-  }
-
-  draw();
-  requestAnimationFrame(animate);
-}
-
-animate(); // Start the loop
