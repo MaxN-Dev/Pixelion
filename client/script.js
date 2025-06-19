@@ -6,22 +6,16 @@ const colorPicker = document.getElementById("colorPicker");
 const canvasSize = 100;
 let scale = 7;
 let targetScale = scale;
-const zoomSpeed = 0.1;
+const zoomSpeed = 0.15;
 
 let isPanning = false;
 let startPan = {};
 
-let pixelCanvasWidth = canvasSize * scale;
-let pixelCanvasHeight = canvasSize * scale;
-
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let windowWidth = window.innerWidth;
-let windowHeight = window.innerHeight;
-
-let offsetX = (windowWidth - pixelCanvasWidth) / 2;
-let offsetY = (windowHeight - pixelCanvasHeight) / 2;
+let offsetX = (window.innerWidth - canvasSize * scale) / 2;
+let offsetY = (window.innerHeight - canvasSize * scale) / 2;
 
 let canvasData = [];
 
@@ -42,12 +36,41 @@ function draw() {
 
 function animate() {
   if (Math.abs(scale - targetScale) > 0.001) {
+    const prevScale = scale;
     scale = lerp(scale, targetScale, zoomSpeed);
     scale = Math.min(Math.max(1, scale), 50);
+
+    // Adjust offset so zoom focuses on mouse position smoothly
+    // We'll store the last mouse position from wheel event for this:
+    if (lastMousePos) {
+      const mouseX = lastMousePos.x;
+      const mouseY = lastMousePos.y;
+
+      const canvasX = (mouseX - offsetX) / prevScale;
+      const canvasY = (mouseY - offsetY) / prevScale;
+
+      const newCanvasX = canvasX * scale + offsetX;
+      const newCanvasY = canvasY * scale + offsetY;
+
+      offsetX += mouseX - newCanvasX;
+      offsetY += mouseY - newCanvasY;
+    }
+
     draw();
   }
   requestAnimationFrame(animate);
 }
+
+let lastMousePos = null;
+
+canvas.addEventListener("wheel", (e) => {
+  e.preventDefault();
+
+  lastMousePos = { x: e.clientX, y: e.clientY };
+
+  const delta = -e.deltaY * 0.0015; // smaller multiplier for smooth gradual zooming
+  targetScale = Math.min(Math.max(1, targetScale * (1 + delta)), 50);
+});
 
 canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
@@ -62,22 +85,6 @@ canvas.addEventListener("click", (e) => {
     };
     socket.emit("place_pixel", { x, y, color });
   }
-});
-
-canvas.addEventListener("wheel", (e) => {
-  e.preventDefault();
-  const rect = canvas.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
-  const prevScale = scale;
-  const canvasX = (mouseX - offsetX) / prevScale;
-  const canvasY = (mouseY - offsetY) / prevScale;
-  const delta = -Math.sign(e.deltaY);
-  targetScale = Math.min(Math.max(1, targetScale + delta), 50);
-  const newCanvasX = canvasX * targetScale + offsetX;
-  const newCanvasY = canvasY * targetScale + offsetY;
-  offsetX += mouseX - newCanvasX;
-  offsetY += mouseY - newCanvasY;
 });
 
 canvas.addEventListener("mousedown", (e) => {
