@@ -5,15 +5,16 @@ const socket = io();
 const colorPicker = document.getElementById("colorPicker");
 
 const canvasSize = 100;
-
 let scale = 7;
 let targetScale = scale;
+
+let windowWidth = window.innerWidth;
+let windowHeight = window.innerHeight;
 
 let offsetX = 0;
 let offsetY = 0;
 let targetOffsetX = (windowWidth - canvasSize * scale) / 2;
 let targetOffsetY = (windowHeight - canvasSize * scale) / 2;
-
 
 let isPanning = false;
 let startPan = {};
@@ -23,9 +24,6 @@ let pixelCanvasHeight = canvasSize * scale;
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-
-let windowWidth = window.innerWidth;
-let windowHeight = window.innerHeight;
 
 let canvasData = [];
 
