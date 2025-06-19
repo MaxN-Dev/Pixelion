@@ -21,11 +21,11 @@ canvas.height = window.innerHeight;
 let canvasData = [];
 
 function draw() {
-  const pixelCanvasWidth = canvasSize * scale;
-  const pixelCanvasHeight = canvasSize * scale;
+  if (!canvasData || canvasData.length === 0) return;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let y = 0; y < canvasSize; y++) {
+    if (!canvasData[y]) continue; // skip undefined rows
     for (let x = 0; x < canvasSize; x++) {
       const color = canvasData[y][x];
       ctx.fillStyle = `rgb(${color.r},${color.g},${color.b})`;
@@ -91,7 +91,9 @@ canvas.addEventListener("mouseleave", () => isPanning = false);
 
 socket.on("load_canvas", (data) => {
   canvasData = data;
+  draw();
 });
+
 
 socket.on("update_pixel", ({ x, y, color }) => {
   canvasData[y][x] = color;
