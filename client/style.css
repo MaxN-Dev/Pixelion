@@ -34,12 +34,12 @@ canvas {
   background: #333333;
   border-radius: 22px;
   padding: 10px;
+  width: 240px;
 }
 
 #hexValue {
-  font-size: 35px;
+  font-size: 32px;
   color: #ffffff;
-  margin-right: 10px;
 }
 
 #colorPicker {
