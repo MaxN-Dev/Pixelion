@@ -33,33 +33,9 @@ def handle_connect():
 
 @socketio.on('place_pixel')
 def handle_place_pixel(data):
-    try:
-        x = int(data.get('x'))
-        y = int(data.get('y'))
-        color = data.get('color')
-
-        if not (0 <= x < CANVAS_WIDTH and 0 <= y < CANVAS_HEIGHT):
-            print(f"Blocked invalid coords: ({x}, {y})")
-            return
-
-        if not isinstance(color, dict):
-            print(f"Blocked non-dict color: {color}")
-            return
-
-        r = int(color.get('r'))
-        g = int(color.get('g'))
-        b = int(color.get('b'))
-
-        if not all(0 <= v <= 255 for v in [r, g, b]):
-            print(f"Blocked out-of-range color: {color}")
-            return
-
-        canvas[y][x] = {'r': r, 'g': g, 'b': b}
-        emit('update_pixel', {'x': x, 'y': y, 'color': {'r': r, 'g': g, 'b': b}}, broadcast=True)
-
-    except Exception as e:
-        print(f"Blocked malformed pixel data: {e}")
-
+    x, y, color = data['x'], data['y'], data['color']
+    canvas[y][x] = color
+    emit('update_pixel', {'x': x, 'y': y, 'color': color}, broadcast=True)
 
 def save_canvas():
     with open(CANVAS_PATH, 'w') as f:
@@ -81,6 +57,6 @@ if __name__ == '__main__':
 
 '''
 git add .
-git commit -m "v0.0.1"
+git commit -m "v0.1"
 git push origin main
 '''
