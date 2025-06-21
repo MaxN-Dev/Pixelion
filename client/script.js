@@ -127,3 +127,7 @@ socket.on("update_pixel", ({ x, y, color }) => {
   draw();
 });
 
+window.addEventListener("contextmenu", (e) => {
+  e.preventDefault();
+});
+
