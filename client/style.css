@@ -19,6 +19,18 @@ canvas {
   image-rendering: pixelated;
 }
 
+#colorPickerBox {
+  display: flex;
+  background: #333333;
+  border-radius: 20px;
+  padding: 10px;
+}
+
+#hexValue {
+  font-size: 20px;
+  color: #ffffff;
+}
+
 #colorPicker {
   position: fixed;
   top: 20px;

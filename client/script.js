@@ -5,6 +5,12 @@ ctx.imageSmoothingEnabled = false;
 const socket = io();
 const colorPicker = document.getElementById("colorPicker");
 
+const hexValue = document.getElementById("hexValue");
+
+colorPicker.addEventListener("input", () => {
+  hexValue.textContent = colorPicker.value.toUpperCase();
+});
+
 const canvasSize = 100;
 let scale = 7;
 
