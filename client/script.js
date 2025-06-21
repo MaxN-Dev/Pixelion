@@ -4,8 +4,9 @@ ctx.imageSmoothingEnabled = false;
 
 const socket = io();
 const colorPicker = document.getElementById("colorPicker");
-
 const hexValue = document.getElementById("hexValue");
+
+hexValue.textContent = colorPicker.value.toUpperCase();
 
 colorPicker.addEventListener("input", () => {
   hexValue.textContent = colorPicker.value.toUpperCase();

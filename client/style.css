@@ -32,12 +32,12 @@ canvas {
   align-items: center;
   justify-content: space-between;
   background: #333333;
-  border-radius: 20px;
+  border-radius: 22px;
   padding: 10px;
 }
 
 #hexValue {
-  font-size: 20px;
+  font-size: 35px;
   color: #ffffff;
   margin-right: 10px;
 }
